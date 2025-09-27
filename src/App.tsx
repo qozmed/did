@@ -2,29 +2,28 @@
 import { useState } from 'react';
 import { createDIDKeyPair } from './lib/did';
 
+type Status = 'idle' | 'sending' | 'sent' | 'confirmed';
+
 function App() {
   const [email, setEmail] = useState('');
-  const [status, setStatus] = useState<'idle' | 'sending' | 'sent' | 'confirmed'>('idle');
+  const [status, setStatus] = useState<Status>('idle');
   const [did, setDid] = useState<string | null>(null);
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (status !== 'idle') return;
+
     setStatus('sending');
 
     try {
-      // 1. Генерируем DID и ключи
       const keypair = createDIDKeyPair();
-
-      // 2. Генерируем 6-значный код
       const code = Math.floor(100000 + Math.random() * 900000).toString();
 
-      // 3. Сохраняем временно в localStorage
       localStorage.setItem('tempDID', keypair.did);
       localStorage.setItem('tempPrivateKey', JSON.stringify(Array.from(keypair.privateKey)));
       localStorage.setItem('tempCode', code);
       localStorage.setItem('tempEmail', email);
 
-      // 4. Отправляем код на email через релей
       const response = await fetch('/api/send-code', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -34,8 +33,7 @@ function App() {
       if (response.ok) {
         setStatus('sent');
       } else {
-        const error = await response.text();
-        throw new Error(error || 'Не удалось отправить письмо');
+        throw new Error('Не удалось отправить письмо');
       }
     } catch (err) {
       console.error(err);
@@ -53,11 +51,8 @@ function App() {
       if (savedDID) {
         setDid(savedDID);
         setStatus('confirmed');
-
-        // Очистка временных данных
         localStorage.removeItem('tempCode');
         localStorage.removeItem('tempEmail');
-        // Приватный ключ пока не удаляем — для будущего использования
       }
     } else {
       alert('Неверный код!');
@@ -88,65 +83,61 @@ function App() {
             Этот DID принадлежит только вам. Он не привязан к серверу и не требует пароля.
           </p>
         </div>
+      ) : status === 'sent' ? (
+        <div style={{ border: '1px solid #ddd', padding: '20px', borderRadius: '8px' }}>
+          <p>📧 Код отправлен на: <strong>{email}</strong></p>
+          <button
+            onClick={handleConfirm}
+            style={{
+              width: '100%',
+              padding: '10px',
+              backgroundColor: '#2196F3',
+              color: 'white',
+              border: 'none',
+              borderRadius: '4px',
+              cursor: 'pointer',
+              marginTop: '10px',
+            }}
+          >
+            Ввести код подтверждения
+          </button>
+        </div>
       ) : (
         <div style={{ border: '1px solid #ddd', padding: '20px', borderRadius: '8px' }}>
-          {status === 'idle' && (
-            <form onSubmit={handleRegister}>
-              <label style={{ display: 'block', marginBottom: '8px' }}>
-                Введите email для подтверждения:
-              </label>
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="user@example.com"
-                required
-                style={{
-                  width: '100%',
-                  padding: '10px',
-                  marginBottom: '12px',
-                  border: '1px solid #ccc',
-                  borderRadius: '4px',
-                }}
-              />
-              <button
-                type="submit"
-                disabled={status === 'sending'}
-                style={{
-                  width: '100%',
-                  padding: '10px',
-                  backgroundColor: '#4CAF50',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '4px',
-                  cursor: 'pointer',
-                }}
-              >
-                {status === 'sending' ? 'Отправка...' : 'Получить код'}
-              </button>
-            </form>
-          )}
-
-          {status === 'sent' && (
-            <div>
-              <p>📧 Код отправлен на: <strong>{email}</strong></p>
-              <button
-                onClick={handleConfirm}
-                style={{
-                  width: '100%',
-                  padding: '10px',
-                  backgroundColor: '#2196F3',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '4px',
-                  cursor: 'pointer',
-                  marginTop: '10px',
-                }}
-              >
-                Ввести код подтверждения
-              </button>
-            </div>
-          )}
+          <form onSubmit={handleRegister}>
+            <label style={{ display: 'block', marginBottom: '8px' }}>
+              Введите email для подтверждения:
+            </label>
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="user@example.com"
+              required
+              style={{
+                width: '100%',
+                padding: '10px',
+                marginBottom: '12px',
+                border: '1px solid #ccc',
+                borderRadius: '4px',
+              }}
+            />
+            <button
+              type="submit"
+              disabled={status !== 'idle'}
+              style={{
+                width: '100%',
+                padding: '10px',
+                backgroundColor: '#4CAF50',
+                color: 'white',
+                border: 'none',
+                borderRadius: '4px',
+                cursor: 'pointer',
+              }}
+            >
+              {status === 'sending' ? 'Отправка...' : 'Получить код'}
+            </button>
+          </form>
         </div>
       )}
     </div>
