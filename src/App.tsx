@@ -1,12 +1,11 @@
-// src/App.tsx
 import { useState } from 'react';
 import { createDIDKeyPair } from './lib/did';
 
-type Status = 'idle' | 'sending' | 'sent' | 'confirmed';
+type AuthStatus = 'idle' | 'sending' | 'sent' | 'confirmed';
 
-function App() {
+export default function App() {
   const [email, setEmail] = useState('');
-  const [status, setStatus] = useState<Status>('idle');
+  const [status, setStatus] = useState<AuthStatus>('idle');
   const [did, setDid] = useState<string | null>(null);
 
   const handleRegister = async (e: React.FormEvent) => {
@@ -128,7 +127,7 @@ function App() {
               style={{
                 width: '100%',
                 padding: '10px',
-                backgroundColor: '#4CAF50',
+                backgroundColor: status === 'sending' ? '#9e9e9e' : '#4CAF50',
                 color: 'white',
                 border: 'none',
                 borderRadius: '4px',
@@ -143,5 +142,3 @@ function App() {
     </div>
   );
 }
-
-export default App;
