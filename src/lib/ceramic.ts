@@ -7,10 +7,7 @@ let ceramicInstance: CeramicClient | null = null;
 
 export function getCeramic(): CeramicClient {
   if (!ceramicInstance) {
-    ceramicInstance = new CeramicClient(CERAMIC_URL, {
-      // Отключаем проверку подписи для анонимной записи (только для тестовой сети!)
-      anchorOnRequest: false,
-    });
+    ceramicInstance = new CeramicClient(CERAMIC_URL);
   }
   return ceramicInstance;
 }
@@ -18,7 +15,7 @@ export function getCeramic(): CeramicClient {
 export async function saveEmailDIDBinding(emailHash: string, did: string): Promise<string> {
   const ceramic = getCeramic();
   
-  // Создаём документ БЕЗ контроллеров — анонимно
+  // Создаём анонимный документ (без controllers)
   const doc = await TileDocument.create(ceramic, { emailHash, did });
   
   return doc.id.toString();
