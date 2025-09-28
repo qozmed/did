@@ -4,13 +4,12 @@ import { createDIDKeyPair } from './lib/did';
 
 type Page = 'email' | 'verify' | 'success';
 
-// Правильная типизация через as const
 const styles = {
   container: {
     minHeight: '100vh',
-    backgroundColor: '#0a0a0a',
+    backgroundColor: '#121212',
     color: '#e0e0e0',
-    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+    fontFamily: '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
@@ -18,149 +17,186 @@ const styles = {
     position: 'relative' as const,
     overflow: 'hidden' as const,
   },
-  gradientBg: {
-    position: 'absolute' as const,
-    top: 0,
-    left: 0,
-    width: '100%',
-    height: '100%',
-    background: `
-      radial-gradient(circle at 30% 20%, rgba(0, 240, 255, 0.03) 0%, transparent 40%),
-      radial-gradient(circle at 70% 80%, rgba(0, 240, 255, 0.02) 0%, transparent 50%)
-    `,
-    pointerEvents: 'none' as const,
-  },
   card: {
     width: '100%',
-    maxWidth: '480px',
+    maxWidth: '460px',
     textAlign: 'center' as const,
   },
   header: {
     marginBottom: '32px',
   },
   icon: {
-    width: '56px',
-    height: '56px',
+    width: '52px',
+    height: '52px',
     margin: '0 auto 16px',
     display: 'block',
+    opacity: 0.9,
   },
   title: {
-    fontSize: '24px',
+    fontSize: '26px',
     fontWeight: '700' as const,
-    background: 'linear-gradient(90deg, #00f0ff, #00a8ff)',
+    lineHeight: 1.2,
+    marginBottom: '8px',
+    background: 'linear-gradient(120deg, #e0e0e0, #a0a0a0)',
     WebkitBackgroundClip: 'text' as const,
     WebkitTextFillColor: 'transparent' as const,
     backgroundClip: 'text' as const,
-    marginBottom: '8px',
   },
   subtitle: {
-    fontSize: '14px',
+    fontSize: '15px',
     color: '#a0a0a0',
+    lineHeight: 1.5,
   },
   liquidGlass: {
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
-    backdropFilter: 'blur(16px)',
-    WebkitBackdropFilter: 'blur(16px)',
-    border: '1px solid rgba(255, 255, 255, 0.1)',
-    borderRadius: '16px',
-    padding: '24px',
-    boxShadow: '0 0 30px rgba(0, 240, 255, 0.1)',
+    backgroundColor: 'rgba(30, 30, 30, 0.7)',
+    backdropFilter: 'blur(12px)',
+    WebkitBackdropFilter: 'blur(12px)',
+    borderRadius: '18px',
+    padding: '28px',
+    border: '1px solid rgba(255, 255, 255, 0.08)',
     position: 'relative' as const,
     overflow: 'hidden' as const,
+    boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)',
   },
   liquidOverlay: {
     position: 'absolute' as const,
-    top: 0,
-    left: 0,
-    width: '100%',
-    height: '100%',
-    opacity: 0.3,
+    top: '-50%',
+    left: '-50%',
+    width: '200%',
+    height: '200%',
     background: `
-      radial-gradient(circle at 20% 30%, rgba(0, 240, 255, 0.15) 0%, transparent 40%),
-      radial-gradient(circle at 80% 70%, rgba(0, 240, 255, 0.1) 0%, transparent 50%)
+      radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.12) 0%, transparent 20%),
+      radial-gradient(circle at 70% 70%, rgba(255, 255, 255, 0.08) 0%, transparent 25%)
     `,
     pointerEvents: 'none' as const,
+    animation: 'rotate 12s linear infinite',
   },
   input: {
     width: '100%',
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
-    border: '1px solid rgba(255, 255, 255, 0.1)',
-    borderRadius: '12px',
-    padding: '12px 16px',
+    backgroundColor: 'rgba(20, 20, 20, 0.6)',
+    border: '1px solid rgba(255, 255, 255, 0.12)',
+    borderRadius: '14px',
+    padding: '14px 18px',
     fontSize: '16px',
-    color: '#fff',
+    color: '#f0f0f0',
     outline: 'none' as const,
+    fontFamily: 'inherit',
+    boxSizing: 'border-box' as const,
   },
   inputCode: {
     width: '100%',
     textAlign: 'center' as const,
-    fontSize: '24px',
-    fontFamily: 'monospace' as const,
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
-    border: '1px solid rgba(255, 255, 255, 0.1)',
-    borderRadius: '12px',
-    padding: '16px',
-    color: '#00f0ff',
+    fontSize: '26px',
+    fontWeight: '600' as const,
+    fontFamily: '"SF Mono", "Monaco", "Inconsolata", "Fira Mono", monospace',
+    backgroundColor: 'rgba(20, 20, 20, 0.6)',
+    border: '1px solid rgba(255, 255, 255, 0.12)',
+    borderRadius: '14px',
+    padding: '18px',
+    color: '#d0d0d0',
     outline: 'none' as const,
+    boxSizing: 'border-box' as const,
   },
   button: {
     width: '100%',
-    padding: '12px',
+    padding: '14px',
     fontSize: '16px',
     fontWeight: '600' as const,
-    borderRadius: '12px',
+    borderRadius: '14px',
     border: 'none' as const,
     cursor: 'pointer' as const,
-    marginTop: '16px',
-    transition: 'all 0.2s ease',
+    marginTop: '18px',
+    fontFamily: 'inherit',
+    position: 'relative' as const,
+    overflow: 'hidden' as const,
+    transition: 'all 0.3s ease',
   },
   buttonPrimary: {
-    background: 'linear-gradient(90deg, #00f0ff, #00a8ff)',
-    color: '#000',
-    boxShadow: '0 4px 20px rgba(0, 240, 255, 0.2)',
+    backgroundColor: '#1e1e1e',
+    color: '#f0f0f0',
+    border: '1px solid rgba(255, 255, 255, 0.15)',
+    boxShadow: '0 4px 20px rgba(0, 0, 0, 0.25)',
   },
   buttonPrimaryHover: {
-    boxShadow: '0 6px 25px rgba(0, 240, 255, 0.3)',
+    backgroundColor: '#252525',
+    boxShadow: '0 6px 25px rgba(0, 0, 0, 0.35), 0 0 15px rgba(100, 100, 100, 0.1)',
     transform: 'translateY(-2px)' as const,
   },
   buttonDisabled: {
-    background: 'rgba(255, 255, 255, 0.1)',
+    backgroundColor: 'rgba(30, 30, 30, 0.5)',
     color: 'rgba(255, 255, 255, 0.4)',
     cursor: 'not-allowed' as const,
+    border: '1px solid rgba(255, 255, 255, 0.08)',
   },
   buttonLink: {
     background: 'none' as const,
     color: '#a0a0a0',
-    fontSize: '14px',
-    marginTop: '12px',
+    fontSize: '15px',
+    marginTop: '14px',
     border: 'none' as const,
     padding: 0,
+    textDecoration: 'none' as const,
   },
   buttonLinkHover: {
-    color: '#00f0ff',
+    color: '#d0d0d0',
+    textShadow: '0 0 8px rgba(200, 200, 200, 0.2)',
   },
   footer: {
-    fontSize: '12px',
-    color: '#777',
-    marginTop: '24px',
+    fontSize: '13px',
+    color: '#888',
+    marginTop: '26px',
+    lineHeight: 1.5,
   },
   didDisplay: {
-    backgroundColor: 'rgba(0, 0, 0, 0.2)',
-    border: '1px solid rgba(0, 240, 255, 0.2)',
-    borderRadius: '8px',
-    padding: '12px',
+    backgroundColor: 'rgba(15, 15, 15, 0.6)',
+    border: '1px solid rgba(255, 255, 255, 0.1)',
+    borderRadius: '12px',
+    padding: '16px',
     fontSize: '14px',
-    fontFamily: 'monospace' as const,
-    color: '#00f0ff',
+    fontFamily: '"SF Mono", "Monaco", monospace',
+    color: '#c0c0c0',
     wordBreak: 'break-all' as const,
+    lineHeight: 1.5,
   },
   successText: {
-    fontSize: '12px',
-    color: '#777',
+    fontSize: '14px',
+    color: '#999',
     lineHeight: 1.6,
-    marginTop: '24px',
+    marginTop: '28px',
   },
 };
+
+// Добавляем CSS-анимацию для преломления
+const GlobalStyles = () => (
+  <style>{`
+    @keyframes rotate {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    body {
+      margin: 0;
+      overflow-x: hidden;
+    }
+    input::placeholder {
+      color: #777;
+      opacity: 1;
+    }
+    * {
+      scrollbar-width: thin;
+      scrollbar-color: #333 #121212;
+    }
+    ::-webkit-scrollbar {
+      width: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #121212;
+    }
+    ::-webkit-scrollbar-thumb {
+      background-color: #333;
+      border-radius: 3px;
+    }
+  `}</style>
+);
 
 export default function App() {
   const [page, setPage] = useState<Page>('email');
@@ -190,11 +226,11 @@ export default function App() {
       if (res.ok) {
         setPage('verify');
       } else {
-        alert('Не удалось отправить письмо');
+        alert('Failed to send email');
       }
     } catch (err) {
       console.error(err);
-      alert('Ошибка сети');
+      alert('Network error');
     } finally {
       setStatus('idle');
     }
@@ -202,7 +238,7 @@ export default function App() {
 
   const handleVerify = () => {
     if (code !== localStorage.getItem('tempCode')) {
-      alert('Неверный код');
+      alert('Invalid code');
       return;
     }
 
@@ -216,35 +252,36 @@ export default function App() {
   };
 
   return (
-    <div style={styles.container}>
-      <div style={styles.gradientBg} />
-      
-      <AnimatePresence mode="wait">
-        {page === 'email' && (
-          <EmailPage
-            key="email"
-            email={email}
-            setEmail={setEmail}
-            onSend={handleSendCode}
-            isSending={status === 'sending'}
-          />
-        )}
+    <>
+      <GlobalStyles />
+      <div style={styles.container}>
+        <AnimatePresence mode="wait">
+          {page === 'email' && (
+            <EmailPage
+              key="email"
+              email={email}
+              setEmail={setEmail}
+              onSend={handleSendCode}
+              isSending={status === 'sending'}
+            />
+          )}
 
-        {page === 'verify' && (
-          <VerifyPage
-            key="verify"
-            code={code}
-            setCode={setCode}
-            onVerify={handleVerify}
-            onBack={() => setPage('email')}
-          />
-        )}
+          {page === 'verify' && (
+            <VerifyPage
+              key="verify"
+              code={code}
+              setCode={setCode}
+              onVerify={handleVerify}
+              onBack={() => setPage('email')}
+            />
+          )}
 
-        {page === 'success' && (
-          <SuccessPage key="success" did={did!} />
-        )}
-      </AnimatePresence>
-    </div>
+          {page === 'success' && (
+            <SuccessPage key="success" did={did!} />
+          )}
+        </AnimatePresence>
+      </div>
+    </>
   );
 }
 
@@ -263,18 +300,12 @@ const EmailPage = ({ email, setEmail, onSend, isSending }: {
   >
     <div style={styles.header}>
       <div style={styles.icon}>
-        <svg viewBox="0 0 24 24" fill="none" stroke="url(#grad1)" strokeWidth="2">
-          <defs>
-            <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stopColor="#00f0ff" />
-              <stop offset="100%" stopColor="#00a8ff" />
-            </linearGradient>
-          </defs>
+        <svg viewBox="0 0 24 24" fill="none" stroke="#a0a0a0" strokeWidth="1.8">
           <path d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
         </svg>
       </div>
-      <h1 style={styles.title}>Анонимный вход</h1>
-      <p style={styles.subtitle}>Ваша личность остаётся при вас. Никаких следов.</p>
+      <h1 style={styles.title}>Anonymous Sign In</h1>
+      <p style={styles.subtitle}>Your identity stays with you. No traces left behind.</p>
     </div>
 
     <div style={{ position: 'relative', ...styles.liquidGlass }}>
@@ -284,7 +315,7 @@ const EmailPage = ({ email, setEmail, onSend, isSending }: {
           type="email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          placeholder="email@example.com"
+          placeholder="you@example.com"
           style={styles.input}
           disabled={isSending}
         />
@@ -309,13 +340,13 @@ const EmailPage = ({ email, setEmail, onSend, isSending }: {
             }
           }}
         >
-          {isSending ? 'Отправка...' : 'Получить код'}
+          {isSending ? 'Sending...' : 'Get Verification Code'}
         </button>
       </div>
     </div>
 
     <p style={styles.footer}>
-      Мы не храним ваш email. Он используется только для подтверждения.
+      We never store your email. It's used only for verification.
     </p>
   </motion.div>
 );
@@ -335,18 +366,12 @@ const VerifyPage = ({ code, setCode, onVerify, onBack }: {
   >
     <div style={styles.header}>
       <div style={styles.icon}>
-        <svg viewBox="0 0 24 24" fill="none" stroke="url(#grad2)" strokeWidth="2">
-          <defs>
-            <linearGradient id="grad2" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stopColor="#00f0ff" />
-              <stop offset="100%" stopColor="#00a8ff" />
-            </linearGradient>
-          </defs>
+        <svg viewBox="0 0 24 24" fill="none" stroke="#a0a0a0" strokeWidth="1.8">
           <path d="M15 17h5l-5 5v-5zM9 7H4l5-5v5m0 8a6 6 0 100-12 6 6 0 000 12z" />
         </svg>
       </div>
-      <h1 style={styles.title}>Проверьте почту</h1>
-      <p style={styles.subtitle}>Введите 6-значный код из письма</p>
+      <h1 style={styles.title}>Check Your Email</h1>
+      <p style={styles.subtitle}>Enter the 6-digit code from the email</p>
     </div>
 
     <div style={{ position: 'relative', ...styles.liquidGlass }}>
@@ -381,7 +406,7 @@ const VerifyPage = ({ code, setCode, onVerify, onBack }: {
             }
           }}
         >
-          Подтвердить
+          Verify Code
         </button>
         <button
           onClick={onBack}
@@ -389,7 +414,7 @@ const VerifyPage = ({ code, setCode, onVerify, onBack }: {
           onMouseEnter={(e) => Object.assign(e.currentTarget.style, styles.buttonLinkHover)}
           onMouseLeave={(e) => Object.assign(e.currentTarget.style, styles.buttonLink)}
         >
-          ← Вернуться к email
+          ← Back to email
         </button>
       </div>
     </div>
@@ -405,32 +430,26 @@ const SuccessPage = ({ did }: { did: string }) => (
     style={styles.card}
   >
     <div style={styles.icon}>
-      <svg viewBox="0 0 24 24" fill="none" stroke="url(#grad3)" strokeWidth="2">
-        <defs>
-          <linearGradient id="grad3" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stopColor="#00f0ff" />
-            <stop offset="100%" stopColor="#00a8ff" />
-          </linearGradient>
-        </defs>
+      <svg viewBox="0 0 24 24" fill="none" stroke="#a0a0a0" strokeWidth="1.8">
         <path d="M5 13l4 4L19 7" />
       </svg>
     </div>
 
-    <h1 style={styles.title}>Успешно!</h1>
-    <p style={styles.subtitle}>Ваш децентрализованный идентификатор создан</p>
+    <h1 style={styles.title}>Success!</h1>
+    <p style={styles.subtitle}>Your decentralized identifier has been created</p>
 
-    <div style={{ position: 'relative', ...styles.liquidGlass, marginTop: '24px' }}>
+    <div style={{ position: 'relative', ...styles.liquidGlass, marginTop: '28px' }}>
       <div style={styles.liquidOverlay} />
       <div style={{ position: 'relative', zIndex: 1 }}>
-        <p style={{ fontSize: '12px', color: 'rgba(0, 240, 255, 0.8)', marginBottom: '8px' }}>DID</p>
+        <p style={{ fontSize: '13px', color: '#aaa', marginBottom: '10px', fontWeight: '600' }}>DID</p>
         <div style={styles.didDisplay}>{did}</div>
       </div>
     </div>
 
     <div style={styles.successText}>
-      <p>Этот идентификатор принадлежит только вам.</p>
-      <p style={{ marginTop: '8px' }}>Никакие серверы не хранят ваши данные.</p>
-      <p style={{ marginTop: '8px' }}>Вы — хозяин своей цифровой личности.</p>
+      <p>This identifier belongs to you alone.</p>
+      <p style={{ marginTop: '10px' }}>No servers store your data.</p>
+      <p style={{ marginTop: '10px' }}>You are the owner of your digital identity.</p>
     </div>
   </motion.div>
 );
