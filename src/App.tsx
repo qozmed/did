@@ -206,75 +206,75 @@ export default function App() {
   const [status, setStatus] = useState<'idle' | 'sending' | 'verifying'>('idle');
 
   const handleSendCode = async () => {
-    if (!email || status !== 'idle') return;
-    setStatus('sending');
+  if (!email || status !== 'idle') return;
+  setStatus('sending');
 
+  try {
+    console.log('🚀 Starting registration for email:', email);
+
+    // Генерируем DID
+    let keypair;
     try {
-      console.log('🚀 Starting registration for email:', email);
-
-      // Генерируем DID
-      let keypair;
-      try {
-        keypair = createDIDKeyPair();
-        console.log('🔑 DID generated:', keypair.did);
-      } catch (didErr) {
-        throw new Error('DID generation failed: ' + (didErr instanceof Error ? didErr.message : 'Unknown error'));
-      }
-
-      // Проверяем, что DID действительно существует
-      if (!keypair?.did || typeof keypair.did !== 'string' || !keypair.did.startsWith('did:key:')) {
-        throw new Error(`Invalid DID generated: ${JSON.stringify(keypair)}`);
-      }
-
-      // Генерируем код
-      const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
-      console.log('🔢 Verification code generated:', verificationCode);
-
-      // Хешируем email
-      let emailHash;
-      try {
-        emailHash = await hashEmail(email);
-        console.log('📧 Email hashed:', emailHash);
-      } catch (hashErr) {
-        throw new Error('Email hashing failed: ' + (hashErr instanceof Error ? hashErr.message : 'Unknown error'));
-      }
-
-      // Сохраняем в Ceramic
-      let streamId;
-      try {
-        streamId = await saveEmailDIDBinding(emailHash, keypair.did);
-        console.log('🌐 Saved to Ceramic. Stream ID:', streamId);
-      } catch (ceramicErr) {
-        throw new Error('Ceramic save failed: ' + (ceramicErr instanceof Error ? ceramicErr.message : 'Unknown error'));
-      }
-
-      // Сохраняем локально
-      localStorage.setItem('tempDID', keypair.did);
-      localStorage.setItem('tempCode', verificationCode);
-      localStorage.setItem('tempEmail', email);
-      console.log('💾 Temporary data saved to localStorage');
-
-      // Отправляем код по email
-      const res = await fetch('/api/send-code', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, code: verificationCode }),
-      });
-
-      if (res.ok) {
-        console.log('📬 Verification code sent successfully');
-        setPage('verify');
-      } else {
-        const errorText = await res.text();
-        throw new Error(`Email send failed: ${errorText}`);
-      }
-    } catch (err) {
-      console.error('🚨 Registration FAILED:', err);
-      alert('Registration failed: ' + (err instanceof Error ? err.message : 'Unknown error'));
-    } finally {
-      setStatus('idle');
+      keypair = createDIDKeyPair();
+      console.log('🔑 DID generated:', keypair.did);
+    } catch (didErr) {
+      throw new Error('DID generation failed: ' + (didErr instanceof Error ? didErr.message : 'Unknown error'));
     }
-  };
+
+    // Проверяем, что DID действительно существует
+    if (!keypair?.did || typeof keypair.did !== 'string' || !keypair.did.startsWith('did:key:')) {
+      throw new Error(`Invalid DID generated: ${JSON.stringify(keypair)}`);
+    }
+
+    // Генерируем код
+    const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
+    console.log('🔢 Verification code generated:', verificationCode);
+
+    // Хешируем email
+    let emailHash;
+    try {
+      emailHash = await hashEmail(email);
+      console.log('📧 Email hashed:', emailHash);
+    } catch (hashErr) {
+      throw new Error('Email hashing failed: ' + (hashErr instanceof Error ? hashErr.message : 'Unknown error'));
+    }
+
+    // Сохраняем в Ceramic
+    let streamId;
+    try {
+      streamId = await saveEmailDIDBinding(emailHash, keypair.did);
+      console.log('🌐 Saved to Ceramic. Stream ID:', streamId);
+    } catch (ceramicErr) {
+      throw new Error('Ceramic save failed: ' + (ceramicErr instanceof Error ? ceramicErr.message : 'Unknown error'));
+    }
+
+    // Сохраняем локально
+    localStorage.setItem('tempDID', keypair.did);
+    localStorage.setItem('tempCode', verificationCode);
+    localStorage.setItem('tempEmail', email);
+    console.log('💾 Temporary data saved to localStorage');
+
+    // Отправляем код по email
+    const res = await fetch('/api/send-code', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, code: verificationCode }),
+    });
+
+    if (res.ok) {
+      console.log('📬 Verification code sent successfully');
+      setPage('verify');
+    } else {
+      const errorText = await res.text();
+      throw new Error(`Email send failed: ${errorText}`);
+    }
+  } catch (err) {
+    console.error('🚨 Registration FAILED:', err);
+    alert('Registration failed: ' + (err instanceof Error ? err.message : 'Unknown error'));
+  } finally {
+    setStatus('idle');
+  }
+};
 
   const handleVerify = () => {
     if (code !== localStorage.getItem('tempCode')) {

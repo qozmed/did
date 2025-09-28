@@ -1,3 +1,4 @@
+// src/lib/did.ts
 import { generateKeyPair } from '@stablelib/ed25519';
 import { base58btc } from 'multiformats/bases/base58';
 
@@ -30,7 +31,7 @@ export function createDIDKeyPair(): DIDKeyPair {
   }
 }
 
-// Хеширование email для анонимности
+// ЭКСПОРТИРУЕМ hashEmail!
 export async function hashEmail(email: string): Promise<string> {
   try {
     const normalized = email.toLowerCase().trim();
