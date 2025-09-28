@@ -1,4 +1,3 @@
-// api/send-code.ts
 export const config = {
   runtime: 'edge',
 };
@@ -11,11 +10,10 @@ export default async function handler(request: Request) {
   const { email, code } = await request.json();
 
   if (!email || !code) {
-    return new Response(JSON.stringify({ error: 'Email and code are required' }), { status: 400 });
+    return new Response(JSON.stringify({ error: 'Email and code required' }), { status: 400 });
   }
 
   try {
-    // Отправляем напрямую в Resend API через fetch
     const response = await fetch('https://api.resend.com/emails', {
       method: 'POST',
       headers: {
@@ -25,23 +23,17 @@ export default async function handler(request: Request) {
       body: JSON.stringify({
         from: 'Auth <onboarding@resend.dev>',
         to: email,
-        subject: 'Ваш код подтверждения — DID Auth',
-        text: `Ваш код: ${code}\n\nЭтот код подтверждает владение email. Он не хранится на сервере.`,
+        subject: 'Ваш код подтверждения',
+        text: `Код: ${code}`,
       }),
     });
 
-    if (!response.ok) {
-      const error = await response.text();
-      console.error('Resend API error:', error);
-      return new Response(JSON.stringify({ error: 'Failed to send email' }), { status: 500 });
+    if (response.ok) {
+      return new Response(JSON.stringify({ ok: true }), { status: 200 });
+    } else {
+      return new Response(JSON.stringify({ error: 'Email send failed' }), { status: 500 });
     }
-
-    return new Response(JSON.stringify({ ok: true }), {
-      status: 200,
-      headers: { 'Content-Type': 'application/json' },
-    });
   } catch (error) {
-    console.error('Edge Function error:', error);
     return new Response(JSON.stringify({ error: 'Internal error' }), { status: 500 });
   }
 }
