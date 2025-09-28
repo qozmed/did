@@ -15,8 +15,10 @@ export function getCeramic(): CeramicClient {
 export async function saveEmailDIDBinding(emailHash: string, did: string): Promise<string> {
   const ceramic = getCeramic();
   
-  // Создаём анонимный документ (без controllers)
-  const doc = await TileDocument.create(ceramic, { emailHash, did });
+  // Указываем DID как контроллер — теперь документ принадлежит пользователю
+  const doc = await TileDocument.create(ceramic, { emailHash, did }, {
+    controllers: [did],
+  });
   
   return doc.id.toString();
 }
