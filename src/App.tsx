@@ -221,6 +221,11 @@ export default function App() {
         throw new Error('DID generation failed: ' + (didErr instanceof Error ? didErr.message : 'Unknown error'));
       }
 
+      // Проверяем, что DID действительно существует
+      if (!keypair?.did || typeof keypair.did !== 'string' || !keypair.did.startsWith('did:key:')) {
+        throw new Error(`Invalid DID generated: ${JSON.stringify(keypair)}`);
+      }
+
       // Генерируем код
       const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
       console.log('🔢 Verification code generated:', verificationCode);
@@ -489,3 +494,4 @@ const SuccessPage = ({ did }: { did: string }) => (
     </div>
   </motion.div>
 );
+

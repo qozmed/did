@@ -19,8 +19,8 @@ export function createDIDKeyPair(): DIDKeyPair {
     const encoded = base58btc.encode(prefixedKey);
     const did = `did:key:${encoded}`;
 
-    if (!did || typeof did !== 'string') {
-      throw new Error('Failed to generate valid DID');
+    if (!did || typeof did !== 'string' || !did.startsWith('did:key:')) {
+      throw new Error('Generated DID is invalid');
     }
 
     return { did, privateKey, publicKey };
