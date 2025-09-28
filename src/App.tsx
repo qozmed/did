@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { createDIDKeyPair } from './lib/did';
+import { createDIDKeyPair, hashEmail } from './lib/did';
+import { saveEmailDIDBinding } from './lib/ceramic';
 
 type Page = 'email' | 'verify' | 'success';
 
@@ -166,7 +167,6 @@ const styles = {
   },
 };
 
-// Добавляем CSS-анимацию для преломления
 const GlobalStyles = () => (
   <style>{`
     @keyframes rotate {
@@ -212,7 +212,13 @@ export default function App() {
     try {
       const keypair = createDIDKeyPair();
       const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
+      const emailHash = await hashEmail(email);
 
+      // Сохраняем в Ceramic
+      const streamId = await saveEmailDIDBinding(emailHash, keypair.did);
+      console.log('✅ Saved to Ceramic:', streamId);
+
+      // Сохраняем локально (временно)
       localStorage.setItem('tempDID', keypair.did);
       localStorage.setItem('tempCode', verificationCode);
       localStorage.setItem('tempEmail', email);
@@ -229,8 +235,8 @@ export default function App() {
         alert('Failed to send email');
       }
     } catch (err) {
-      console.error(err);
-      alert('Network error');
+      console.error('Ceramic error:', err);
+      alert('Registration failed: ' + (err instanceof Error ? err.message : 'Unknown error'));
     } finally {
       setStatus('idle');
     }

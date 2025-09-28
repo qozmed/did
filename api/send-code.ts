@@ -23,8 +23,8 @@ export default async function handler(request: Request) {
       body: JSON.stringify({
         from: 'Auth <onboarding@resend.dev>',
         to: email,
-        subject: 'Ваш код подтверждения',
-        text: `Код: ${code}`,
+        subject: 'Your verification code',
+        text: `Code: ${code}`,
       }),
     });
 
