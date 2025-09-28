@@ -13,6 +13,7 @@
     "@ceramicnetwork/stream-tile": "^2.20.0",
     "@stablelib/ed25519": "^1.0.3",
     "framer-motion": "^11.18.2",
+    "gun": "^0.2020.1241",
     "multiformats": "^13.4.1",
     "react": "^18.3.1",
     "react-dom": "^18.3.1"

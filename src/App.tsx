@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { createDIDKeyPair, hashEmail } from './lib/did';
-import { saveEmailDIDBinding } from './lib/ceramic';
+import { saveEmailDIDBinding, findDIDByEmailHash } from './lib/gun';
 
 type Page = 'email' | 'verify' | 'success';
 
@@ -205,76 +205,132 @@ export default function App() {
   const [did, setDid] = useState<string | null>(null);
   const [status, setStatus] = useState<'idle' | 'sending' | 'verifying'>('idle');
 
-  const handleSendCode = async () => {
-  if (!email || status !== 'idle') return;
-  setStatus('sending');
+  // Регистрация нового пользователя
+  const handleRegister = async () => {
+    if (!email || status !== 'idle') return;
+    setStatus('sending');
 
-  try {
-    console.log('🚀 Starting registration for email:', email);
-
-    // Генерируем DID
-    let keypair;
     try {
-      keypair = createDIDKeyPair();
-      console.log('🔑 DID generated:', keypair.did);
-    } catch (didErr) {
-      throw new Error('DID generation failed: ' + (didErr instanceof Error ? didErr.message : 'Unknown error'));
+      console.log('🚀 Starting registration for email:', email);
+
+      // Генерируем DID
+      let keypair;
+      try {
+        keypair = createDIDKeyPair();
+        console.log('🔑 DID generated:', keypair.did);
+      } catch (didErr) {
+        throw new Error('DID generation failed: ' + (didErr instanceof Error ? didErr.message : 'Unknown error'));
+      }
+
+      // Проверяем, что DID действительно существует
+      if (!keypair?.did || typeof keypair.did !== 'string' || !keypair.did.startsWith('did:key:')) {
+        throw new Error(`Invalid DID generated: ${JSON.stringify(keypair)}`);
+      }
+
+      // Генерируем код
+      const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
+      console.log('🔢 Verification code generated:', verificationCode);
+
+      // Хешируем email
+      let emailHash;
+      try {
+        emailHash = await hashEmail(email);
+        console.log('📧 Email hashed:', emailHash);
+      } catch (hashErr) {
+        throw new Error('Email hashing failed: ' + (hashErr instanceof Error ? hashErr.message : 'Unknown error'));
+      }
+
+      // Сохраняем в GunDB
+      try {
+        await saveEmailDIDBinding(emailHash, keypair.did);
+        console.log('🌐 Saved to GunDB');
+      } catch (gunErr) {
+        throw new Error('GunDB save failed: ' + (gunErr instanceof Error ? gunErr.message : 'Unknown error'));
+      }
+
+      // Сохраняем локально
+      localStorage.setItem('tempDID', keypair.did);
+      localStorage.setItem('tempCode', verificationCode);
+      localStorage.setItem('tempEmail', email);
+      console.log('💾 Temporary data saved to localStorage');
+
+      // Отправляем код по email
+      const res = await fetch('/api/send-code', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, code: verificationCode }),
+      });
+
+      if (res.ok) {
+        console.log('📬 Verification code sent successfully');
+        setPage('verify');
+      } else {
+        const errorText = await res.text();
+        throw new Error(`Email send failed: ${errorText}`);
+      }
+    } catch (err) {
+      console.error('🚨 Registration FAILED:', err);
+      alert('Registration failed: ' + (err instanceof Error ? err.message : 'Unknown error'));
+    } finally {
+      setStatus('idle');
     }
+  };
 
-    // Проверяем, что DID действительно существует
-    if (!keypair?.did || typeof keypair.did !== 'string' || !keypair.did.startsWith('did:key:')) {
-      throw new Error(`Invalid DID generated: ${JSON.stringify(keypair)}`);
-    }
+  // Вход существующего пользователя
+  const handleLogin = async () => {
+    if (!email || status !== 'idle') return;
+    setStatus('sending');
 
-    // Генерируем код
-    const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
-    console.log('🔢 Verification code generated:', verificationCode);
-
-    // Хешируем email
-    let emailHash;
     try {
-      emailHash = await hashEmail(email);
-      console.log('📧 Email hashed:', emailHash);
-    } catch (hashErr) {
-      throw new Error('Email hashing failed: ' + (hashErr instanceof Error ? hashErr.message : 'Unknown error'));
+      console.log('🔓 Starting login for email:', email);
+
+      // Хешируем email
+      let emailHash;
+      try {
+        emailHash = await hashEmail(email);
+        console.log('📧 Email hashed:', emailHash);
+      } catch (hashErr) {
+        throw new Error('Email hashing failed: ' + (hashErr instanceof Error ? hashErr.message : 'Unknown error'));
+      }
+
+      // Ищем DID в GunDB
+      const foundDID = await findDIDByEmailHash(emailHash);
+      if (!foundDID) {
+        alert('No account found for this email. Please register first.');
+        return;
+      }
+
+      // Генерируем код
+      const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
+      console.log('🔢 Verification code generated:', verificationCode);
+
+      // Сохраняем данные для верификации
+      localStorage.setItem('loginDID', foundDID);
+      localStorage.setItem('loginEmail', email);
+      localStorage.setItem('tempCode', verificationCode);
+      console.log('💾 Login data saved to localStorage');
+
+      // Отправляем код по email
+      const res = await fetch('/api/send-code', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, code: verificationCode }),
+      });
+
+      if (res.ok) {
+        console.log('📬 Verification code sent successfully');
+        setPage('verify');
+      } else {
+        const errorText = await res.text();
+        throw new Error(`Email send failed: ${errorText}`);
+      }
+    } catch (err) {
+      console.error('🚨 Login FAILED:', err);
+      alert('Login failed: ' + (err instanceof Error ? err.message : 'Unknown error'));
+    } finally {
+      setStatus('idle');
     }
-
-    // Сохраняем в Ceramic
-    let streamId;
-    try {
-      streamId = await saveEmailDIDBinding(emailHash, keypair.did);
-      console.log('🌐 Saved to Ceramic. Stream ID:', streamId);
-    } catch (ceramicErr) {
-      throw new Error('Ceramic save failed: ' + (ceramicErr instanceof Error ? ceramicErr.message : 'Unknown error'));
-    }
-
-    // Сохраняем локально
-    localStorage.setItem('tempDID', keypair.did);
-    localStorage.setItem('tempCode', verificationCode);
-    localStorage.setItem('tempEmail', email);
-    console.log('💾 Temporary data saved to localStorage');
-
-    // Отправляем код по email
-    const res = await fetch('/api/send-code', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, code: verificationCode }),
-    });
-
-    if (res.ok) {
-      console.log('📬 Verification code sent successfully');
-      setPage('verify');
-    } else {
-      const errorText = await res.text();
-      throw new Error(`Email send failed: ${errorText}`);
-    }
-  } catch (err) {
-    console.error('🚨 Registration FAILED:', err);
-    alert('Registration failed: ' + (err instanceof Error ? err.message : 'Unknown error'));
-  } finally {
-    setStatus('idle');
-  }
-};
+  };
 
   const handleVerify = () => {
     if (code !== localStorage.getItem('tempCode')) {
@@ -282,13 +338,26 @@ export default function App() {
       return;
     }
 
-    const savedDID = localStorage.getItem('tempDID');
-    if (savedDID) {
-      setDid(savedDID);
+    // Определяем, это регистрация или вход
+    const tempDID = localStorage.getItem('tempDID');
+    const loginDID = localStorage.getItem('loginDID');
+
+    if (tempDID) {
+      // Регистрация
+      setDid(tempDID);
       setPage('success');
+      localStorage.removeItem('tempDID');
       localStorage.removeItem('tempCode');
       localStorage.removeItem('tempEmail');
-      console.log('✅ Verification successful. DID:', savedDID);
+      console.log('✅ Registration successful. DID:', tempDID);
+    } else if (loginDID) {
+      // Вход
+      setDid(loginDID);
+      setPage('success');
+      localStorage.removeItem('loginDID');
+      localStorage.removeItem('tempCode');
+      localStorage.removeItem('loginEmail');
+      console.log('✅ Login successful. DID:', loginDID);
     }
   };
 
@@ -302,7 +371,8 @@ export default function App() {
               key="email"
               email={email}
               setEmail={setEmail}
-              onSend={handleSendCode}
+              onRegister={handleRegister}
+              onLogin={handleLogin}
               isSending={status === 'sending'}
             />
           )}
@@ -326,10 +396,11 @@ export default function App() {
   );
 }
 
-const EmailPage = ({ email, setEmail, onSend, isSending }: {
+const EmailPage = ({ email, setEmail, onRegister, onLogin, isSending }: {
   email: string;
   setEmail: (e: string) => void;
-  onSend: () => void;
+  onRegister: () => void;
+  onLogin: () => void;
   isSending: boolean;
 }) => (
   <motion.div
@@ -361,7 +432,7 @@ const EmailPage = ({ email, setEmail, onSend, isSending }: {
           disabled={isSending}
         />
         <button
-          onClick={onSend}
+          onClick={onLogin}
           disabled={!email || isSending}
           style={{
             ...styles.button,
@@ -381,7 +452,31 @@ const EmailPage = ({ email, setEmail, onSend, isSending }: {
             }
           }}
         >
-          {isSending ? 'Sending...' : 'Get Verification Code'}
+          Sign In
+        </button>
+        <button
+          onClick={onRegister}
+          disabled={!email || isSending}
+          style={{
+            ...styles.button,
+            ...(email && !isSending
+              ? { ...styles.buttonPrimary }
+              : styles.buttonDisabled
+            ),
+            marginTop: '10px',
+          }}
+          onMouseEnter={(e) => {
+            if (email && !isSending) {
+              Object.assign(e.currentTarget.style, styles.buttonPrimaryHover);
+            }
+          }}
+          onMouseLeave={(e) => {
+            if (email && !isSending) {
+              Object.assign(e.currentTarget.style, styles.buttonPrimary);
+            }
+          }}
+        >
+          Register
         </button>
       </div>
     </div>
@@ -494,4 +589,3 @@ const SuccessPage = ({ did }: { did: string }) => (
     </div>
   </motion.div>
 );
-
